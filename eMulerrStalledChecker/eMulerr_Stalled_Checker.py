@@ -492,7 +492,7 @@ def check_special_cases(emulerr_data):
                 valid_record = record
                 break
 
-        if valid_record is None:
+        if valid_record is None and DELETE_IF_ONLY_ON_EMULERR:
             logger.info(
                 f"Records present for '{download.name}' (hash: {download.hash}), but no one meets the criteria. "
                 "Download considered present only on eMulerr."
