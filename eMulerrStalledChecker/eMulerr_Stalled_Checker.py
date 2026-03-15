@@ -491,14 +491,23 @@ def check_special_cases(emulerr_data):
             if data.get("downloadClientName") == Config.DOWNLOAD_CLIENT:
                 valid_record = record
                 break
-
-        if valid_record is None and DELETE_IF_ONLY_ON_EMULERR:
-            logger.info(
-                f"Records present for '{download.name}' (hash: {download.hash}), but no one meets the criteria. "
-                "Download considered present only on eMulerr."
-            )
-            emulerr_downloads_to_remove.append(download)
-            continue
+            # If records exist but none meet the criteria, the download is considered
+            # present only on eMulerr (not tracked by Sonarr/Radarr).
+            # We still need to `continue` in both cases to avoid using a None
+            # valid_record further down, which would crash.
+            if valid_record is None:
+                if Config.DELETE_IF_ONLY_ON_EMULERR:
+                    logger.info(
+                        f"Records present for '{download.name}' (hash: {download.hash}), but no one meets the criteria. "
+                        "Download considered present only on eMulerr. Marking for removal."
+                    )
+                    emulerr_downloads_to_remove.append(download)
+                else:
+                    logger.info(
+                        f"Records present for '{download.name}' (hash: {download.hash}), but no one meets the criteria. "
+                        "DELETE_IF_ONLY_ON_EMULERR is disabled, skipping removal."
+                    )
+                continue
 
         # If a valid record is present, creates the specific object and retains the record for later checking
         if client == "radarr":
